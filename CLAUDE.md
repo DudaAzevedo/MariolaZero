@@ -8,8 +8,9 @@ equipes Titãs da Robótica). Tudo em português: código, comentários, commits
 | pasta / arquivo | o que é |
 |---|---|
 | `README.md` | apresentação do repositório (reescrito em 20/10/2026; o antigo era o guia de instalação) |
-| `INSTALACAO.md` + `instalacao/` | instalação do Linux do brick num arquivo só (Armbian Bookworm + kernel 6.18 com overlays, Python, permissões, menu, rede, câmeras, áudio, cooler, raiz somente leitura, Samba, boot rápido, recuperação, build) e os arquivos de apoio. **Duas imagens:** Line/Maze = Bookworm Minimal no BPI-M4 Zero de 8 GB (sem cooler); @Work = Armbian Noble/Ubuntu 24.04 + ROS2 no de 32 GB (com cooler `fancontrol`, NetworkManager). O apêndice C é a conferência de um brick em 20/10/2026 |
+| `INSTALACAO.md` + `instalacao/` | instalação do Linux do brick num arquivo só (Armbian Bookworm + kernel 6.18 com overlays, Python, permissões, menu, rede, câmeras, áudio, cooler, raiz somente leitura, Samba, boot rápido, recuperação, build) e os arquivos de apoio. **Duas imagens:** Line/Maze = Bookworm Minimal no BPI-M4 Zero de 8 GB (sem cooler); @Work = Armbian Noble/Ubuntu 24.04 + ROS2 no de 32 GB (com cooler `fancontrol`, NetworkManager). O apêndice C é a conferência de um brick em 20/10/2026. Gravar a eMMC: Line/Maze = `instalacao_emmc.sh` (imagem na p3 do cartão de reserva, gerada pelo `atualiza_imagem.sh`); @Work = `clona_sd_emmc.sh` (rsync do cartão para partições novas com UUIDs novos; apêndice D; ainda não rodado numa eMMC de 32 GB) |
 | `_instalacao_antiga/` | os `.md`, scripts, `.dts`/`.dtb` e o `ScriptsIA/` antigos, movidos em 20/10/2026. O Julio vai apagar depois de revisar o `INSTALACAO.md`; não use como fonte (o apêndice B do `INSTALACAO.md` diz o que ficou só lá) |
+| `firmware/mariola/` | o `.hex` do `placaBrickVendra` (firmware de 26/10/2026, md5 `eb34acab`), `grava_mariola.sh` (roda no brick: acha a porta pela regra do `portas.py`, avisa se a porta está em uso, pede ENTER com o **RESET na mão**, `avrdude -F -patmega328pb -carduino -b 115200 -D`; `-n` só confere), `grava_mariola.bat` (copia para `~/firmware_mariola` e roda por `ssh -t`) e `LEIAME.md`. `.gitattributes` da pasta força LF no `.sh`. Firmware novo? Troque o `.hex` e a versão/md5 no LEIAME. O script antigo `~/gravaMicrocontrolador.sh` do brick usava `/dev/ttyUSB0` fixo |
 | `libs/` | bibliotecas **reais** do Mariola (Python, rodam no robô): motores, placaControleMotor, placaControleServo, giroscopio, vl53, sensorCorReflexao, teclado, tela, botoes... |
 | `exemplos/`, `menuPrincipal/`, `telemetria/` | programas do robô real |
 | `simuladorLine/` | simulador da RoboCupJunior Rescue Line (tem `CLAUDE.md` próprio) |
@@ -110,14 +111,29 @@ Os simuladores emulam estes firmwares byte a byte. Na dúvida sobre um comportam
   1º ao 12º), 3 TCS34725 a 2 cm um do outro, fileiras IR e TCS separadas por 9 mm, 3 LEDs brancos.
   IR: 0 = preto, ~100 = branco calibrado, **fita prata ~80 (abaixo do branco)**. TCS calibrado no
   branco e enviado pela metade (branco ≈ 127, prata passa de 127). A equipe usa o sensor a 12 mm do chão.
+* Pinos digitais P1-P8 (`PinosDigitais`): linhas 259, 260, 71, 234, 228, 265, 266, 267 do
+  PIO principal do H618 (`300b000.pinctrl`). No kernel 6.18 (conferido num brick em 27/10/2026) ele é
+  o `gpiochip1`; o `gpiochip0` é o R_PIO, de 32 linhas (no 6.6 era o contrário). Desde 27/10 a lib
+  acha o chip pelo rótulo (`acha_chip_gpio()`); antes estava fixa no `gpiochip0` e não funcionava no
+  6.18. `libs/pinosDigitais.py` = a versão do `exemplos/06-lidar` (singleton, `SAIDA`/`ENTRADA`, P8
+  indisponível se a linha estiver em uso pelo PWM), copiada em `exemplos/04`, `05`, `06` e nos
+  `libs_mariola`. **A classe `Botoes` (`botoes.py`) foi juntada ao `PinosDigitais` em 27/10** (as duas
+  disputavam os pinos): `botoes.py` apagado de `libs/`, `exemplos/04` e `libs_mariola`, e os
+  programas (exemplos dos simuladores, `curso/codigos`, gabarito m08/m16, exemplo 04) trocados para
+  `PinosDigitais`, que tem `le_botao`/`botao_pressionado`/`LIBERADO`/`APERTADO`. Programa de aluno
+  com `from botoes import Botoes` quebra de propósito (a referência `curso/referencia/botoes.md`
+  explica a troca). O `menuPrincipal/botoes.py` (antigo, pinos em outra ordem, `gpiochip0`, não
+  usado pelo menu) também saiu, e o `cronometro.py` do menu ficou igual ao de `libs/` (só mudava a
+  formatação). O `gpiod` falso dos simuladores responde `get_info()` como o PIO principal.
 * Giroscópio do Mariola: Z em graus, acumulando, positivo no sentido horário. O curso usa
   `z()` positivo = esquerda e troca o sinal numa função só.
 * Servos inteligentes do Julio (lib `placaControleServo`) no mesmo barramento serial (SERIAL1) das
   placas de motor.
 * Conectores: `documentação/Conectores.pdf`/`.odp` (fonte, o Julio edita) e `documentação/Conectores.md`
   (texto). Header amarelo = 6 colunas (SINAL, 5V, GND): SERVOS 1–4 (pinos 14–17; o 4 pode ser a 2ª
-  fita de LEDs), LEDs (pino 12, os 10 RGB) e DEBUG/PWM (pino 11: TX do serialDebug do ATmega ou PWM
-  da ventoinha). REDE (RXN, RXP, TXN, TXP; virado 180° em relação ao USB) e AUDIO (GND, L_OUT,
+  fita de LEDs), LEDs (pino 12, os 10 RGB) e DEBUG/PWM (pino 11: TX do serialDebug do ATmega, PWM
+  da ventoinha ou buzzer). Servos comuns, ventoinha e buzzer dividem o Timer2: desde o firmware de
+  26/10/2026 o primeiro usado fica com ele até reiniciar (`documentação/Motores.md`). REDE (RXN, RXP, TXN, TXP; virado 180° em relação ao USB) e AUDIO (GND, L_OUT,
   L_IN, 5V) são do Banana Pi. A imagem do mapa no curso (`curso/imagens/conectores.jpg`) sai da
   página 1 do PDF.
 
