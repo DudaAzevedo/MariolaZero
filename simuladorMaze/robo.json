@@ -41,7 +41,7 @@
 
   "portas_serial": {
     "SERIAL0": "mariola",
-    "SERIAL1": "barramento_motores",
+    "SERIAL2": "barramento_motores",
     "SERIAL5": "giroscopio",
     "SERIAL6": "cor_reflexao_v2"
   },
