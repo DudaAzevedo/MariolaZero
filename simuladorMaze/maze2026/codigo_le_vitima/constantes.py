@@ -1,0 +1,13 @@
+# CONSTANTES VITIMAS
+
+PRETO = 'preto'
+VERMELHO = 'vermelho'
+AMARELO = 'amarelo'
+VERDE = 'verde'
+AZUL = 'azul'
+
+PRETO_SOMAR = -2 
+VERMELHO_SOMAR = -1
+AMARELO_SOMAR = 0 
+VERDE_SOMAR = 1
+AZUL_SOMAR = 2
