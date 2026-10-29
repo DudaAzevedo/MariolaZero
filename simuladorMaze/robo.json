@@ -19,8 +19,8 @@
   "motores": [
     {"nome": "traseira_esquerda", "x": -55, "y":  75, "controlador": "mariola", "canal": 1, "sentido": -1},
     {"nome": "traseira_direita",  "x": -55, "y": -75, "controlador": "mariola", "canal": 2, "sentido": 1},
-    {"nome": "dianteira_esquerda","x":  55, "y":  75, "controlador": "placa", "porta": "SERIAL2", "id": 5,  "sentido": -1},
-    {"nome": "dianteira_direita", "x":  55, "y": -75, "controlador": "placa", "porta": "SERIAL2", "id": 72, "sentido": 1}
+    {"nome": "dianteira_esquerda","x":  55, "y":  75, "controlador": "placa", "porta": "SERIAL2", "id": 5,  "sentido": 1},
+    {"nome": "dianteira_direita", "x":  55, "y": -75, "controlador": "placa", "porta": "SERIAL2", "id": 72, "sentido": -1}
   ],
 
   "motor_padrao": {
@@ -48,11 +48,11 @@
   "latencia_serial_ms": 1.0,
 
   "vl53": [
-    {"nome": "esq_frente", "mux": "I2C1", "x":  70, "y":  85, "angulo":  90},
+    {"nome": "esq_frente", "mux": "I2C2", "x":  70, "y":  85, "angulo":  90},
     {"nome": "esq_tras",   "mux": "I2C3", "x": -70, "y":  85, "angulo":  90},
     {"nome": "dir_frente", "mux": "I2C7", "x":  70, "y": -85, "angulo": -90},
     {"nome": "dir_tras",   "mux": "I2C6", "x": -70, "y": -85, "angulo": -90},
-    {"nome": "frente",     "mux": "I2C5", "x":  95, "y":   0, "angulo":   0},
+    {"nome": "frente",     "mux": "I2C1", "x":  95, "y":   0, "angulo":   0},
     {"nome": "tras",       "mux": "I2C4", "x": -95, "y":   0, "angulo": 180}
   ],
   "vl53_params": {
